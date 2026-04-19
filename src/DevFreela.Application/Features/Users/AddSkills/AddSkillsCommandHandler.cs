@@ -1,20 +1,19 @@
 ﻿using DevFreela.Application.Common;
 using DevFreela.Core.Entities;
-using DevFreela.Infrastructure.Persistence;
+using DevFreela.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace DevFreela.Application.Features.Users.AddSkills
 {
-    public class AddSkillsCommandHandler(DevFreelaDbContext context) : IRequestHandler
+    public class AddSkillsCommandHandler(IUserRepository repository) : IRequestHandler
         <AddSkillsCommand, Result<Unit>>
     {
         public async Task<Result<Unit>> Handle(AddSkillsCommand request, CancellationToken cancellationToken)
         {
             var userSkills = request.SkillIds.ConvertAll(s => new UserSkill(request.UserId, s));
             
-            await context.AddRangeAsync(userSkills, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
+            await repository.AddSkillsAsync(userSkills, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
 
             return Result.Success(Unit.Value);
         }

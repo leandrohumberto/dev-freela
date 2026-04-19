@@ -1,15 +1,14 @@
 ﻿using DevFreela.Application.Common;
-using DevFreela.Infrastructure.Persistence;
+using DevFreela.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace DevFreela.Application.Features.Projects.StartProject
 {
-    public class StartProjectCommandHandler(DevFreelaDbContext context) : IRequestHandler<StartProjectCommand, Result<Unit>>
+    public class StartProjectCommandHandler(IProjectRepository repository) : IRequestHandler<StartProjectCommand, Result<Unit>>
     {
         public async Task<Result<Unit>> Handle(StartProjectCommand request, CancellationToken cancellationToken)
         {
-            var project = await context.Projects.SingleOrDefaultAsync(p => p.Id == request.ProjectId && !p.Deleted, cancellationToken);
+            var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
 
             if (project is null)
             {
@@ -17,8 +16,8 @@ namespace DevFreela.Application.Features.Projects.StartProject
             }
 
             project.Start();
-            context.Projects.Update(project);
-            await context.SaveChangesAsync(cancellationToken);
+            repository.Update(project);
+            await repository.SaveChangesAsync(cancellationToken);
 
             return Result.Success(Unit.Value);
         }

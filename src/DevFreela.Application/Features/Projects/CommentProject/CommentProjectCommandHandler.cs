@@ -1,15 +1,14 @@
 ﻿using DevFreela.Application.Common;
-using DevFreela.Infrastructure.Persistence;
+using DevFreela.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace DevFreela.Application.Features.Projects.CommentProject
 {
-    public class CommentProjectCommandHandler(DevFreelaDbContext context) : IRequestHandler<CommentProjectCommand, Result<Unit>>
+    public class CommentProjectCommandHandler(IProjectRepository repository) : IRequestHandler<CommentProjectCommand, Result<Unit>>
     {
         public async Task<Result<Unit>> Handle(CommentProjectCommand request, CancellationToken cancellationToken)
         {
-            var project = await context.Projects.SingleOrDefaultAsync(p => p.Id == request.ProjectId && !p.Deleted, cancellationToken);
+            var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
 
             if (project is null)
             {
@@ -18,8 +17,8 @@ namespace DevFreela.Application.Features.Projects.CommentProject
 
             var comment = request.ToEntity();
 
-            await context.ProjectComments.AddAsync(comment, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
+            await repository.AddCommentAsync(comment, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
 
             return Result.Success(Unit.Value);
         }
