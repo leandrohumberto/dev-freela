@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace DevFreela.Application.Features.Projects.CommentProject
 {
-    public record CommentProjectCommand(Guid UserId, string Content) : IRequest<Result<Unit>>
+    public record CommentProjectCommand(Guid UserId, string Content) : IRequest<Result>
     {
         [JsonIgnore]
         public Guid ProjectId { get; set; }

@@ -11,7 +11,14 @@ namespace DevFreela.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // EF Core
+            AddPersistence(services, configuration);
+            AddRepositories(services);
+
+            return services;
+        }
+
+        private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
+        {
             var connectionString = configuration.GetConnectionString("DevFreelaCs");
 
             if (connectionString is not null)
@@ -22,13 +29,14 @@ namespace DevFreela.Infrastructure
             {
                 services.AddDbContext<DevFreelaDbContext>(o => o.UseInMemoryDatabase("DevFreelaDb"));
             }
+        }
 
+        private static void AddRepositories(IServiceCollection services)
+        {
             // Repositories
             services.AddScoped<ISkillRepository, SkillRepository>();
             services.AddScoped<IProjectRepository, ProjectRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
-
-            return services;
         }
     }
 }

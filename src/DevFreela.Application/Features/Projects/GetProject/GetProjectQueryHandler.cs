@@ -1,8 +1,6 @@
 ﻿using DevFreela.Application.Common;
 using DevFreela.Core.Repositories;
-using DevFreela.Infrastructure.Persistence;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace DevFreela.Application.Features.Projects.GetProject
 {

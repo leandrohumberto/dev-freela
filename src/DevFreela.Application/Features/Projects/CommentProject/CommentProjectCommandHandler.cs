@@ -4,15 +4,15 @@ using MediatR;
 
 namespace DevFreela.Application.Features.Projects.CommentProject
 {
-    public class CommentProjectCommandHandler(IProjectRepository repository) : IRequestHandler<CommentProjectCommand, Result<Unit>>
+    public class CommentProjectCommandHandler(IProjectRepository repository) : IRequestHandler<CommentProjectCommand, Result>
     {
-        public async Task<Result<Unit>> Handle(CommentProjectCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(CommentProjectCommand request, CancellationToken cancellationToken)
         {
             var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
 
             if (project is null)
             {
-                return Result.Failure<Unit>("Project not found.");
+                return Result.Failure("Project not found.");
             }
 
             var comment = request.ToEntity();
@@ -20,7 +20,7 @@ namespace DevFreela.Application.Features.Projects.CommentProject
             await repository.AddCommentAsync(comment, cancellationToken);
             await repository.SaveChangesAsync(cancellationToken);
 
-            return Result.Success(Unit.Value);
+            return Result.Success();
         }
     }
 }

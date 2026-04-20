@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace DevFreela.Application.Features.Projects.UpdateProject
 {
-    public record UpdateProjectCommand(string Title, string Description, decimal TotalCost) : IRequest<Result<Unit>>
+    public record UpdateProjectCommand(string Title, string Description, decimal TotalCost) : IRequest<Result>
     {
         [JsonIgnore]
         public Guid ProjectId { get; set; }
