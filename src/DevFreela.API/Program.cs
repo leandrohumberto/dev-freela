@@ -1,15 +1,21 @@
-using DevFreela.API;
 using DevFreela.API.Handlers;
+using DevFreela.API.Middleware;
 using DevFreela.Application;
-using DevFreela.Application.Common.Configs;
 using DevFreela.Infrastructure;
+using Serilog;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 // Add services to the container.
 builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddTransient<CorrelationIdMiddleware>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -29,6 +35,9 @@ var app = builder.Build();
 
 // Note: This must be called early in the pipeline to catch errors from later stages
 app.UseExceptionHandler();
+
+// Middlewares
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
