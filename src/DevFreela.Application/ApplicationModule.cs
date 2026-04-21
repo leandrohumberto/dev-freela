@@ -1,4 +1,5 @@
 ﻿using DevFreela.Application.Common;
+using DevFreela.Application.Common.Behaviors;
 using DevFreela.Application.Common.Configs;
 using DevFreela.Application.Features.Projects.CreateProject;
 using MediatR;
@@ -25,11 +26,18 @@ namespace DevFreela.Application
 
         private static void AddHandlers(IServiceCollection services)
         {
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateProjectCommand).Assembly));
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(CreateProjectCommand).Assembly);
+
+                // cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            });
         }
 
         private static void AddBehaviors(IServiceCollection services)
         {
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
             services.AddTransient<IPipelineBehavior<CreateProjectCommand, Result<Guid>>, ValidateCreateProjectCommandBehavior>();
         }
     }

@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace DevFreela.API.Handlers
 {
-    public class GlobalExceptionHandler : IExceptionHandler
+    public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
@@ -46,11 +46,11 @@ namespace DevFreela.API.Handlers
                     break;
             }
 
-            //logger.LogError(
-            //    exception,
-            //    "An unhandled exception has occurred. Path: {Path}, Status: {StatusCode}",
-            //    httpContext.Request.Path,
-            //    statusCode);
+            logger.LogError(
+                exception,
+                "An unhandled exception has occurred. Path: {Path}, Status: {StatusCode}",
+                httpContext.Request.Path,
+                statusCode);
 
             return true;
         }
