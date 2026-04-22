@@ -25,6 +25,11 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
                     p => p.Id == userId && p.Deleted == deleted, cancellationToken);
         }
 
+        public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            return await context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+        }
+
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await context.SaveChangesAsync(cancellationToken);

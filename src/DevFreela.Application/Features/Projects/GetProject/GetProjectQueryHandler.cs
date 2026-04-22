@@ -8,13 +8,16 @@ namespace DevFreela.Application.Features.Projects.GetProject
     {
         public async Task<Result<GetProjectResponse>> Handle(GetProjectQuery request, CancellationToken cancellationToken)
         {
-            var project = await repository.GetByIdAsync(request.Id, false, cancellationToken);
+            var exists = await repository.ExistsAsync(request.ProjectId, cancellationToken);
 
-            if (project is null)
+            if (!exists)
             {
                 return Result.Failure<GetProjectResponse>("Project not found.");
             }
-            var response = GetProjectResponse.FromEntity(project);
+
+            var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
+
+            var response = GetProjectResponse.FromEntity(project!);
             return Result.Success(response);
         }
     }

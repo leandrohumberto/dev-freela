@@ -8,9 +8,9 @@ namespace DevFreela.Application.Features.Projects.CommentProject
     {
         public async Task<Result> Handle(CommentProjectCommand request, CancellationToken cancellationToken)
         {
-            var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
+            var exists = await repository.ExistsAsync(request.ProjectId, cancellationToken);
 
-            if (project is null)
+            if (!exists)
             {
                 return Result.Failure("Project not found.");
             }

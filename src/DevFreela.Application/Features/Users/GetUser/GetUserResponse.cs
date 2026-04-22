@@ -1,6 +1,6 @@
 ﻿using DevFreela.Core.Entities;
 
-namespace DevFreela.Application.Features.Users.GetUserById
+namespace DevFreela.Application.Features.Users.GetUser
 {
     public record GetUserResponse(string FullName, string Email, DateOnly BirthDate, List<string> Skills)
     {

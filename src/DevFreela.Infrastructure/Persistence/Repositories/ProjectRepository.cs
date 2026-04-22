@@ -44,6 +44,11 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
             context.Projects.Update(project);
         }
 
+        public async Task<bool> ExistsAsync(Guid projectId, CancellationToken cancellationToken = default)
+        {
+            return await context.Projects.AnyAsync(p => p.Id == projectId, cancellationToken);
+        }
+
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await context.SaveChangesAsync(cancellationToken);

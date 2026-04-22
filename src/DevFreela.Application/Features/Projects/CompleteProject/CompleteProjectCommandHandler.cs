@@ -8,14 +8,16 @@ namespace DevFreela.Application.Features.Projects.CompleteProject
     {
         public async Task<Result> Handle(CompleteProjectCommand request, CancellationToken cancellationToken)
         {
-            var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
+            var exists = await repository.ExistsAsync(request.ProjectId, cancellationToken);
 
-            if (project is null)
+            if (!exists)
             {
                 return Result.Failure("Project not found.");
             }
 
-            project.Complete();
+            var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
+
+            project!.Complete();
             repository.Update(project);
             await repository.SaveChangesAsync(cancellationToken);
 

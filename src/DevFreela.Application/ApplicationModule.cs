@@ -2,9 +2,11 @@
 using DevFreela.Application.Common.Behaviors;
 using DevFreela.Application.Common.Configs;
 using DevFreela.Application.Features.Projects.CreateProject;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace DevFreela.Application
 {
@@ -14,6 +16,7 @@ namespace DevFreela.Application
         {
             AddServices(services, configuration);
             AddHandlers(services);
+            AddValidators(services);
             AddBehaviors(services);
 
             return services;
@@ -22,6 +25,11 @@ namespace DevFreela.Application
         private static void AddServices(IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<FreelanceTotalCostConfig>(configuration.GetSection("FreelanceTotalCostConfig"));
+        }
+
+        private static void AddValidators(IServiceCollection services)
+        {
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         }
 
         private static void AddHandlers(IServiceCollection services)
@@ -37,6 +45,7 @@ namespace DevFreela.Application
         private static void AddBehaviors(IServiceCollection services)
         {
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             services.AddTransient<IPipelineBehavior<CreateProjectCommand, Result<Guid>>, ValidateCreateProjectCommandBehavior>();
         }

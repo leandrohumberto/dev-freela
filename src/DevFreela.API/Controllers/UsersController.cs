@@ -1,6 +1,6 @@
 ﻿using DevFreela.Application.Features.Users.AddSkills;
 using DevFreela.Application.Features.Users.CreateUser;
-using DevFreela.Application.Features.Users.GetUserById;
+using DevFreela.Application.Features.Users.GetUser;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +28,7 @@ namespace DevFreela.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var result = await mediator.Send(new GetUserCommand(id), cancellationToken);
+            var result = await mediator.Send(new GetUserQuery(id), cancellationToken);
 
             if (result.IsFailure)
             {
