@@ -1,4 +1,5 @@
 ﻿using DevFreela.Application.Common;
+using DevFreela.Core.Common;
 using DevFreela.Core.Entities;
 using DevFreela.Core.Repositories;
 using MediatR;
@@ -10,6 +11,11 @@ namespace DevFreela.Application.Features.Users.AddSkills
     {
         public async Task<Result> Handle(AddSkillsCommand request, CancellationToken cancellationToken)
         {
+            if (request.SkillIds == null)
+            {
+                return Result.Failure(ValidationRules.RequiredSkillIdsValidationMessage);
+            }
+
             var userSkills = request.SkillIds.ConvertAll(s => new UserSkill(request.UserId, s));
             
             await repository.AddSkillsAsync(userSkills, cancellationToken);

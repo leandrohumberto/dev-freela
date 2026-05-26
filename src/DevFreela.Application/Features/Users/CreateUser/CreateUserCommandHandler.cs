@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DevFreela.Application.Features.Users.CreateUser
 {
-    public class CreateUserCommandhandler(IUserRepository repository) : IRequestHandler<CreateUserCommand, Result<Guid>>
+    public class CreateUserCommandHandler(IUserRepository repository) : IRequestHandler<CreateUserCommand, Result<Guid>>
     {
         public async Task<Result<Guid>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {

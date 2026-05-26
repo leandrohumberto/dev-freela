@@ -1,4 +1,5 @@
 ﻿using DevFreela.Application.Common;
+using DevFreela.Core.Common;
 using DevFreela.Core.Repositories;
 using MediatR;
 
@@ -12,11 +13,10 @@ namespace DevFreela.Application.Features.Users.GetUser
 
             if (!exists)
             {
-                return Result.Failure<GetUserResponse>("User not found.");
+                return Result.Failure<GetUserResponse>(ValidationRules.UserNotFoundValidationMessage);
             }
 
-            var user = await repository.GetByIdAsync(request.UserId, false,
-                    cancellationToken);
+            var user = await repository.GetByIdAsync(request.UserId, false, cancellationToken);
 
             return Result.Success(GetUserResponse.FromEntity(user!));
         }

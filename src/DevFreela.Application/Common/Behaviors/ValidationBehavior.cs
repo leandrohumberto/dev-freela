@@ -19,15 +19,15 @@ namespace DevFreela.Application.Common.Behaviors
                 var validationResults = await Task.WhenAll(
                     validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
-                var failures = validationResults
+                var errors = validationResults
                     .Where(r => r.Errors.Count != 0)
                     .SelectMany(r => r.Errors)
                     .ToList();
 
-                if (failures.Count != 0)
+                if (errors.Count != 0)
                 {
-                    logger.LogWarning("Validation failed for request {RequestName}. Errors: {ValidationErrors}", typeof(TRequest).Name, failures);
-                    throw new ValidationException(failures);
+                    logger.LogWarning("Validation failed for request {RequestName}. Errors: {ValidationErrors}", typeof(TRequest).Name, errors);
+                    throw new ValidationException(errors);
                 }
             }
 

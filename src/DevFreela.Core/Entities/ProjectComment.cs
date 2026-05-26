@@ -1,11 +1,23 @@
-﻿namespace DevFreela.Core.Entities
+﻿using DevFreela.Core.Common;
+
+namespace DevFreela.Core.Entities
 {
-    public class ProjectComment(string content, Guid projectId, Guid userId) : BaseEntity
+    public class ProjectComment : BaseEntity
     {
-        public string Content { get; private set; } = content;
-        public Guid ProjectId { get; private set; } = projectId;
+        public ProjectComment(string content, Guid projectId, Guid userId)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+                throw new ArgumentException(ValidationRules.RequiredProjectCommentContentDescriptionValidationMessage, nameof(content));
+
+            Content = content;
+            ProjectId = projectId;
+            UserId = userId;
+        }
+
+        public string Content { get; private set; }
+        public Guid ProjectId { get; private set; }
         public Project? Project { get; init; }
-        public Guid UserId { get; private set; } = userId;
-        public User? User { get; init;  }
+        public Guid UserId { get; private set; }
+        public User? User { get; init; }
     }
 }

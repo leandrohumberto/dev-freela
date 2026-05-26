@@ -16,7 +16,7 @@ namespace DevFreela.Application.Features.Projects.SearchProjects
                 false,
                 cancellationToken);
 
-            var response = projects.ConvertAll(p => SearchProjectsResponse.FromEntity(p));
+            var response = projects.ConvertAll(SearchProjectsResponse.FromEntity);
 
             return Result.Success(response);
         }

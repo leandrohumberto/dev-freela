@@ -15,8 +15,8 @@ namespace DevFreela.Application.Features.Projects.SearchProjects
             return new(
                 project.Id,
                 project.Title,
-                project!.Client!.FullName,
-                project.Freelancer!.FullName,
+                project.Client?.FullName ?? string.Empty,
+                project.Freelancer?.FullName ?? string.Empty,
                 project.TotalCost);
         }
     }

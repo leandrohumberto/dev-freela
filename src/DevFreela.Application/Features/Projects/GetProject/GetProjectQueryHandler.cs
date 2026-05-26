@@ -1,4 +1,5 @@
 ﻿using DevFreela.Application.Common;
+using DevFreela.Core.Common;
 using DevFreela.Core.Repositories;
 using MediatR;
 
@@ -12,7 +13,7 @@ namespace DevFreela.Application.Features.Projects.GetProject
 
             if (!exists)
             {
-                return Result.Failure<GetProjectResponse>("Project not found.");
+                return Result.Failure<GetProjectResponse>(ValidationRules.ProjectNotFoundValidationMessage);
             }
 
             var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);

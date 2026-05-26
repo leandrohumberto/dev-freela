@@ -20,8 +20,8 @@ namespace DevFreela.Application.Features.Projects.GetProject
                 project.Id,
                 project.Title,
                 project.Description,
-                project!.Client!.FullName,
-                project.Freelancer!.FullName,
+                project.Client?.FullName ?? string.Empty,
+                project.Freelancer?.FullName ?? string.Empty,
                 project.TotalCost,
                 project.Status,
                 project.Comments);
