@@ -1,4 +1,5 @@
 ﻿using DevFreela.Core.Common;
+using DevFreela.Core.Enums;
 using FluentValidation;
 using System.Text.RegularExpressions;
 
@@ -10,7 +11,7 @@ namespace DevFreela.Application.Features.Users.CreateUser
         {
             RuleFor(u => u.Email)
              .Must(ValidEmail)
-             .WithMessage($"'{nameof(CreateUserCommand.Email)}' is not a valid email address.");
+             .WithMessage(ValidationRules.InvalidUserEmailValidationMessage);
 
             RuleFor(u => u.FullName)
                 .NotEmpty();
@@ -20,10 +21,19 @@ namespace DevFreela.Application.Features.Users.CreateUser
                 .GreaterThanOrEqualTo(ValidationRules.UserBirthDateMinimumValue)
                 .LessThanOrEqualTo(ValidationRules.UserBirthDateMaximumValue);
 
-            //RuleFor(u => u.Password)
-            //    .Must(ValidPassword)
-            //    .WithMessage("Password must be at least 8-character long, and contain a number, " +
-            //        "a lower case letter, uppercase letter, and a special character.");
+            RuleFor(u => u.Password)
+                .Must(ValidPassword)
+                .WithMessage(ValidationRules.InvalidUserPasswordFormatValidationMessage)
+                .DependentRules(() =>
+                {
+                    RuleFor(x => x.Password)
+                        .Must(pass => System.Text.Encoding.UTF8.GetByteCount(pass) <= 72)
+                        .WithMessage(ValidationRules.InvalidUserPasswordMaximumByteLengthValidationMessage);
+                });
+
+            RuleFor(u => u.Role)
+                .IsInEnum()
+                .WithMessage(ValidationRules.InvalidUserRoleValidationMessage);
         }
 
         private static bool ValidEmail(string email)
@@ -35,13 +45,13 @@ namespace DevFreela.Application.Features.Users.CreateUser
         [GeneratedRegex(ValidationRules.EmailRegexPattern, RegexOptions.IgnoreCase)]
         private static partial Regex EmailRegex();
 
-        //private static bool ValidPassword(string password)
-        //{
-        //    var regex = PasswordRegex();
-        //    return regex.IsMatch(password);
-        //}
+        private static bool ValidPassword(string password)
+        {
+            var regex = PasswordRegex();
+            return regex.IsMatch(password);
+        }
 
-        //[GeneratedRegex(ValidationRules.PasswordRegexPattern)]
-        //private static partial Regex PasswordRegex();
+        [GeneratedRegex(ValidationRules.PasswordRegexPattern)]
+        private static partial Regex PasswordRegex();
     }
 }

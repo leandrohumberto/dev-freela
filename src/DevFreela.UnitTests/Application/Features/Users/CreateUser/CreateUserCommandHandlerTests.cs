@@ -1,5 +1,6 @@
 ﻿using DevFreela.Application.Features.Users.CreateUser;
 using DevFreela.Core.Entities;
+using DevFreela.Core.Interfaces;
 using DevFreela.Core.Repositories;
 using DevFreela.UnitTests.Common.Helpers;
 using FluentAssertions;
@@ -18,8 +19,11 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             repository.AddAsync(Arg.Any<User>()).Returns(Task.CompletedTask);
             repository.SaveChangesAsync().Returns(Task.CompletedTask);
 
+            var hasher = Substitute.For<IPasswordHasher>();
+            hasher.Hash(Arg.Any<string>()).Returns(FakeDataHelper.Faker.Random.Hash());
+
             var command = FakeDataHelper.CreateFakeCreateUserCommand();
-            var handler = new CreateUserCommandHandler(repository);
+            var handler = new CreateUserCommandHandler(repository, hasher);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -29,15 +33,17 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             //Assert.True(result.IsSuccess);
             //Assert.False(result.IsFailure);
             //Assert.True(string.IsNullOrWhiteSpace(result.Error));
-            //Assert.IsType<Guid>(result.Value);
+            //Assert.IsType<CreateUserResponse>(result.Value);
 
             result.Should().NotBeNull();
+            result.Value.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
             result.IsFailure.Should().BeFalse();
             string.IsNullOrWhiteSpace(result.Error).Should().BeTrue();
-            result.Value.GetType().Should().Be(typeof(Guid));
+            result.Value.GetType().Should().Be(typeof(CreateUserResponse));
             await repository.Received(1).AddAsync(Arg.Any<User>());
             await repository.Received(1).SaveChangesAsync();
+            hasher.Received(1).Hash(Arg.Any<string>());
         }
 
         [Fact]
@@ -48,8 +54,11 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
                 r.AddAsync(It.IsAny<User>(), CancellationToken.None) == Task.CompletedTask &&
                 r.SaveChangesAsync(CancellationToken.None) == Task.CompletedTask);
 
+            var hasher = Mock.Of<IPasswordHasher>(h =>
+                h.Hash(It.IsAny<string>()) == FakeDataHelper.Faker.Random.Hash(40, false));
+
             var command = FakeDataHelper.CreateFakeCreateUserCommand();
-            var handler = new CreateUserCommandHandler(repository);
+            var handler = new CreateUserCommandHandler(repository, hasher);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -59,15 +68,17 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             //Assert.True(result.IsSuccess);
             //Assert.False(result.IsFailure);
             //Assert.True(string.IsNullOrWhiteSpace(result.Error));
-            //Assert.IsType<Guid>(result.Value);
+            //Assert.IsType<CreateUserResponse>(result.Value);
 
             result.Should().NotBeNull();
+            result.Value.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
             result.IsFailure.Should().BeFalse();
             string.IsNullOrWhiteSpace(result.Error).Should().BeTrue();
-            result.Value.GetType().Should().Be(typeof(Guid));
+            result.Value.GetType().Should().Be(typeof(CreateUserResponse));
             Mock.Get(repository).Verify(r => r.AddAsync(It.IsAny<User>(), CancellationToken.None), Times.Once);
             Mock.Get(repository).Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
+            Mock.Get(hasher).Verify(h => h.Hash(It.IsAny<string>()), Times.Once);
         }
     }
 }

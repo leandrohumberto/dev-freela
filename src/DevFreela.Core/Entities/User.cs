@@ -1,11 +1,12 @@
 ﻿using DevFreela.Core.Common;
+using DevFreela.Core.Enums;
 using System.Text.RegularExpressions;
 
 namespace DevFreela.Core.Entities
 {
     public partial class User : BaseEntity
     {
-        public User(string fullName, string email, DateOnly birthDate)
+        public User(string fullName, string email, DateOnly birthDate, string passwordHash, UserRole role)
         {
             if (string.IsNullOrWhiteSpace(fullName))
                 throw new ArgumentException(ValidationRules.RequiredUserFullNameValidationMessage, nameof(fullName));
@@ -20,6 +21,8 @@ namespace DevFreela.Core.Entities
             FullName = fullName;
             Email = email;
             BirthDate = birthDate;
+            PasswordHash = passwordHash;
+            Role = role;
             OwnedProjects = [];
             FreelanceProjects = [];
             Comments = [];
@@ -29,6 +32,8 @@ namespace DevFreela.Core.Entities
         public string FullName { get; private set; }
         public string Email { get; private set; }
         public DateOnly BirthDate { get; private set; }
+        public string PasswordHash { get; private set; }
+        public UserRole Role { get; private set; }
         public bool Active { get; private set; } = true;
         public List<Project> OwnedProjects { get; private set; }
         public List<Project> FreelanceProjects { get; private set; }
@@ -37,5 +42,7 @@ namespace DevFreela.Core.Entities
 
         [GeneratedRegex(ValidationRules.EmailRegexPattern, RegexOptions.IgnoreCase, "pt-BR")]
         private static partial Regex EmailRegex();
+
+        public void UpdatePasswordHash(string passwordHash) => PasswordHash = passwordHash ;
     }
 }

@@ -1,9 +1,15 @@
-﻿using DevFreela.Core.Repositories;
+﻿using DevFreela.Core.Interfaces;
+using DevFreela.Core.Repositories;
+using DevFreela.Infrastructure.Notifications;
 using DevFreela.Infrastructure.Persistence;
 using DevFreela.Infrastructure.Persistence.Repositories;
+using DevFreela.Infrastructure.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SendGrid.Extensions.DependencyInjection;
+using System.Text;
 
 namespace DevFreela.Infrastructure
 {
@@ -13,6 +19,8 @@ namespace DevFreela.Infrastructure
         {
             AddPersistence(services, configuration);
             AddRepositories(services);
+            AddSecurity(services, configuration);
+            AddEmailService(services, configuration);
 
             return services;
         }
@@ -21,7 +29,7 @@ namespace DevFreela.Infrastructure
         {
             var connectionString = configuration.GetConnectionString("DevFreelaCs");
 
-            if (connectionString is not null)
+            if (!string.IsNullOrWhiteSpace(connectionString))
             {
                 services.AddDbContext<DevFreelaDbContext>(p => p.UseSqlServer(connectionString));
             }
@@ -37,6 +45,41 @@ namespace DevFreela.Infrastructure
             services.AddScoped<ISkillRepository, SkillRepository>();
             services.AddScoped<IProjectRepository, ProjectRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+        }
+
+        private static void AddSecurity(IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<IPasswordResetService, PasswordResetService>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "JwtBearer";
+                options.DefaultChallengeScheme = "JwtBearer";
+            })
+            .AddJwtBearer("JwtBearer", options =>
+            {
+                var jwtSettings = configuration.GetSection("Jwt");
+                options.TokenValidationParameters = new()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidAudience = jwtSettings["Audience"],
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
+                };
+            });
+        }
+
+        private static void AddEmailService(IServiceCollection services, IConfiguration configuration)
+        {
+            var sendGridSettings = configuration.GetSection("SendGrid");
+            services.AddSendGrid(c => c.ApiKey = sendGridSettings["ApiKey"]);
+
+            services.AddScoped<IEmailService, EmailService>();
         }
     }
 }
