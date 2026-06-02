@@ -16,8 +16,13 @@ namespace DevFreela.Application.Features.Users.AddSkills
                 return Result.Failure(ValidationRules.RequiredSkillIdsValidationMessage);
             }
 
+            if (!await repository.ExistsAsync(request.UserId, cancellationToken))
+            {
+                return Result.Failure(ValidationRules.UserNotFoundValidationMessage);
+            }
+
             var userSkills = request.SkillIds.ConvertAll(s => new UserSkill(request.UserId, s));
-            
+
             await repository.AddSkillsAsync(userSkills, cancellationToken);
             await repository.SaveChangesAsync(cancellationToken);
 

@@ -16,6 +16,16 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
             await context.AddRangeAsync(skills, cancellationToken);
         }
 
+        public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            return await context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync(string email, bool deleted = false, CancellationToken cancellationToken = default)
+        {
+            return await context.Users.AnyAsync(u => u.Email == email && u.Deleted == deleted, cancellationToken);
+        }
+
         public async Task<User?> GetByIdAsync(Guid userId, bool deleted = false, CancellationToken cancellationToken = default)
         {
             return await context.Users
@@ -32,16 +42,6 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
                     .ThenInclude(s => s.Skill)
                  .SingleOrDefaultAsync(
                     p => p.Email == email && p.Deleted == deleted, cancellationToken);
-        }
-
-        public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default)
-        {
-            return await context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
-        }
-
-        public async Task<bool> ExistsAsync(string email, bool deleted = false, CancellationToken cancellationToken = default)
-        {
-            return await context.Users.AnyAsync(u => u.Email == email && u.Deleted == deleted, cancellationToken);
         }
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)

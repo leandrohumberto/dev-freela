@@ -26,6 +26,8 @@ namespace DevFreela.Core.Common
         public static string RequiredSkillIdsValidationMessage { get; } = "List of Skill Ids is required.";
         public static string ProjectNotFoundValidationMessage { get; } = "Project not found.";
         public static string UserNotFoundValidationMessage { get; } = "User not found.";
+        public static string SkillNotFoundValidationMessage { get; } = "Skill not found.";
+        public static string ClientOrFreelancerNotFoundValidationMessage { get; } = "Client or Freelancer not found.";
 
         public static string InvalidProjectTotalCostMinimumValueValidationMessage { get; } = $"Total Cost must be greater than {ProjectTotalCostMinimumValue}.";
         public static string InvalidUserBirthDateValidationMessage { get; } = $"Birth date must be between {UserBirthDateMinimumValue} and {UserBirthDateMaximumValue}.";
@@ -33,5 +35,7 @@ namespace DevFreela.Core.Common
         public static string InvalidUserPasswordMaximumByteLengthValidationMessage { get; } = $"Password exceeds the maximum allowed secure size. Please reduce the number of special characters or symbols used.";
         public static string InvalidUserRoleValidationMessage { get; } = $"Invalid user role. Must be one of the following options: {string.Join(", ", Enum.GetNames(typeof(UserRole)))}";
         public static string InvalidResetPasswordCodeValidationMessage { get; } = "Invalid Reset Code.";
+        public static string UserAlreadyExistsValidationMessage { get; } = "User already exists.";
+        public static string SkillAlreadyExistsValidationMessage { get; } = "Skill already exists.";
     }
 }

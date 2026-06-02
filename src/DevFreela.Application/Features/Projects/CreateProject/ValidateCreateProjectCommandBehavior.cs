@@ -1,4 +1,5 @@
 ﻿using DevFreela.Application.Common;
+using DevFreela.Core.Common;
 using DevFreela.Core.Repositories;
 using MediatR;
 
@@ -15,7 +16,7 @@ namespace DevFreela.Application.Features.Projects.CreateProject
 
             if (!clientExists || !freelancerExists)
             {
-                return Result.Failure<Guid>("Client or Freelancer not found.");
+                return Result.Failure<Guid>(ValidationRules.ClientOrFreelancerNotFoundValidationMessage);
             }
 
             return await next(cancellationToken);

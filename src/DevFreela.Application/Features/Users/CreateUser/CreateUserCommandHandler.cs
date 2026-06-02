@@ -1,4 +1,5 @@
 ﻿using DevFreela.Application.Common;
+using DevFreela.Core.Common;
 using DevFreela.Core.Interfaces;
 using DevFreela.Core.Repositories;
 using MediatR;
@@ -9,6 +10,11 @@ namespace DevFreela.Application.Features.Users.CreateUser
     {
         public async Task<Result<CreateUserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
+            if (await repository.ExistsAsync(request.Email, false, cancellationToken))
+            {
+                return Result.Failure<CreateUserResponse>(ValidationRules.UserAlreadyExistsValidationMessage);
+            }
+
             var user = request.ToEntity(hasher.Hash(request.Password));
 
             await repository.AddAsync(user, cancellationToken);

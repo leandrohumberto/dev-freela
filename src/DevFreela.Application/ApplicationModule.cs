@@ -2,6 +2,7 @@
 using DevFreela.Application.Common.Behaviors;
 using DevFreela.Application.Common.Configs;
 using DevFreela.Application.Features.Projects.CreateProject;
+using DevFreela.Application.Features.Users.AddSkills;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -48,6 +49,7 @@ namespace DevFreela.Application
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             services.AddTransient<IPipelineBehavior<CreateProjectCommand, Result<Guid>>, ValidateCreateProjectCommandBehavior>();
+            services.AddTransient<IPipelineBehavior<AddSkillsCommand, Result>, ValidateAddSkillsCommandBehavior>();
         }
     }
 }
