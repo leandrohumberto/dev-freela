@@ -27,13 +27,22 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
 
         public async Task<List<Project>> SearchAsync(string? title = "", string? description = "", int page = 0, int size = 100, bool deleted = false, CancellationToken cancellationToken = default)
         {
-            return await context.Projects
+            IQueryable<Project> query = context.Projects
                 .Include(p => p.Client)
                 .Include(p => p.Freelancer)
-                .Where(p => p.Deleted == deleted
-                    && (string.IsNullOrWhiteSpace(title) || (title != null && p.Title.Contains(title)))
-                    && (string.IsNullOrWhiteSpace(description) || (description != null && p.Description.Contains(description)))
-                )
+                .Where(p => p.Deleted == deleted);
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                query = query.Where(p => p.Title.Contains(title));
+            }
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                query = query.Where(p => p.Description.Contains(description));
+            }
+
+            return await query
                 .Skip(page * size)
                 .Take(size)
                 .ToListAsync(cancellationToken);
