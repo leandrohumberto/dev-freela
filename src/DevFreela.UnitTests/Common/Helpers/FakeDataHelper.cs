@@ -21,7 +21,7 @@ using DevFreela.Application.Features.Users.ValidatePasswordResetCode;
 using DevFreela.Core.Common;
 using DevFreela.Core.Entities;
 using DevFreela.Core.Enums;
-using System;
+using DevFreela.Core.Models;
 
 namespace DevFreela.UnitTests.Common.Helpers
 {
@@ -84,6 +84,14 @@ namespace DevFreela.UnitTests.Common.Helpers
                 f.Lorem.Sentence(),
                 f.Random.Int(min: 0),
                 f.Random.Int(min: 0)));
+
+        private static readonly Faker<PaginationResult<Project>> _projectPaginationResultFaker = new Faker<PaginationResult<Project>>("pt_BR")
+            .CustomInstantiator(f => new PaginationResult<Project>(
+                f.Random.Int(),
+                f.Random.Int(),
+                f.Random.Int(),
+                f.Random.Int(),
+                []));
 
         private static readonly Faker<StartProjectCommand> _startProjectCommandFaker = new Faker<StartProjectCommand>("pt_BR")
             .CustomInstantiator(f => new StartProjectCommand(f.Random.Guid()));
@@ -171,6 +179,8 @@ namespace DevFreela.UnitTests.Common.Helpers
 
         public static SearchProjectsQuery CreateFakeSearchProjectsQuery() => _searchProjectQueryFaker.Generate();
 
+        public static PaginationResult<Project> CreateFakeProjectPaginationResult() => _projectPaginationResultFaker.Generate();
+
         public static StartProjectCommand CreateFakeStartProjectCommand() => _startProjectCommandFaker.Generate();
 
         public static UpdateProjectCommand CreateFakeUpdateProjectCommand() => _updateProjectCommandFaker.Generate();
@@ -212,7 +222,6 @@ namespace DevFreela.UnitTests.Common.Helpers
             bool includeNumber = true,
             bool includeSymbol = true)
         {
-
             ArgumentNullException.ThrowIfNull(internet);
             ArgumentOutOfRangeException.ThrowIfLessThan(minLength, 1);
             ArgumentOutOfRangeException.ThrowIfLessThan(maxLength, minLength);

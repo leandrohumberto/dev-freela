@@ -1,24 +1,30 @@
 ﻿using DevFreela.Application.Common;
+using DevFreela.Core.Models;
 using DevFreela.Core.Repositories;
 using MediatR;
 
 namespace DevFreela.Application.Features.Projects.SearchProjects
 {
-    public class SearchProjectsQueryHandler(IProjectRepository repository) : IRequestHandler<SearchProjectsQuery, Result<List<SearchProjectsResponse>>>
+    public class SearchProjectsQueryHandler(IProjectRepository repository) : IRequestHandler<SearchProjectsQuery, Result<PaginationResult<SearchProjectsResponse>>>
     {
-        public async Task<Result<List<SearchProjectsResponse>>> Handle(SearchProjectsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PaginationResult<SearchProjectsResponse>>> Handle(SearchProjectsQuery request, CancellationToken cancellationToken)
         {
-            var projects = await repository.SearchAsync(
+            var projectsPaginationResult = await repository.SearchAsync(
                 request.Title,
                 request.Description,
                 request.Page,
-                request.Size,
+                request.PageSize,
                 false,
                 cancellationToken);
 
-            var response = projects.ConvertAll(SearchProjectsResponse.FromEntity);
+            var responsePaginationResult = new PaginationResult<SearchProjectsResponse>(
+                projectsPaginationResult.Page,
+                projectsPaginationResult.TotalPages,
+                projectsPaginationResult.PageSize,
+                projectsPaginationResult.ItemsCount,
+                projectsPaginationResult.Data.ConvertAll(SearchProjectsResponse.FromEntity));
 
-            return Result.Success(response);
+            return Result.Success(responsePaginationResult);
         }
     }
 }

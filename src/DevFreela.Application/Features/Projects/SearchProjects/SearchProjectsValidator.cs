@@ -6,11 +6,11 @@ namespace DevFreela.Application.Features.Projects.SearchProjects
     {
         public SearchProjectsValidator()
         {
-            RuleFor(x => x.Size)
+            RuleFor(x => x.PageSize)
                 .GreaterThan(0);
 
             RuleFor(x => x.Page)
-                .GreaterThanOrEqualTo(0);
+                .GreaterThan(0);
         }
     }
 }

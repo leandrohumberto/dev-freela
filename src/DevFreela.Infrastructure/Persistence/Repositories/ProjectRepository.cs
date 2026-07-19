@@ -1,4 +1,5 @@
 ﻿using DevFreela.Core.Entities;
+using DevFreela.Core.Models;
 using DevFreela.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +26,7 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
                  .SingleOrDefaultAsync(p => p.Id == projectId && p.Deleted == deleted, cancellationToken);
         }
 
-        public async Task<List<Project>> SearchAsync(string? title = "", string? description = "", int page = 0, int size = 100, bool deleted = false, CancellationToken cancellationToken = default)
+        public async Task<PaginationResult<Project>> SearchAsync(string? title = "", string? description = "", int page = 1, int pageSize = 10, bool deleted = false, CancellationToken cancellationToken = default)
         {
             IQueryable<Project> query = context.Projects
                 .Include(p => p.Client)
@@ -42,10 +43,7 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
                 query = query.Where(p => p.Description.Contains(description));
             }
 
-            return await query
-                .Skip(page * size)
-                .Take(size)
-                .ToListAsync(cancellationToken);
+            return await query.GetPaged(page, pageSize);
         }
 
         public void Update(Project project)

@@ -1,5 +1,6 @@
 ﻿using DevFreela.Application.Features.Projects.SearchProjects;
 using DevFreela.Core.Entities;
+using DevFreela.Core.Models;
 using DevFreela.Core.Repositories;
 using DevFreela.UnitTests.Common.Helpers;
 using FluentAssertions;
@@ -15,7 +16,7 @@ namespace DevFreela.UnitTests.Application.Features.Projects.SearchProjects
         {
             // Arrange
             var repository = Substitute.For<IProjectRepository>();
-            repository.SearchAsync(Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<bool>()).Returns(Task.FromResult<List<Project>>([]));
+            repository.SearchAsync(Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<bool>()).Returns(Task.FromResult(FakeDataHelper.CreateFakeProjectPaginationResult()));
 
             var query = FakeDataHelper.CreateFakeSearchProjectsQuery();
             var handler = new SearchProjectsQueryHandler(repository);
@@ -35,7 +36,8 @@ namespace DevFreela.UnitTests.Application.Features.Projects.SearchProjects
             result.IsSuccess.Should().BeTrue();
             result.IsFailure.Should().BeFalse();
             result.Value.Should().NotBeNull();
-            result.Value.Should().BeOfType<List<SearchProjectsResponse>?>();
+            result.Value.Should().BeOfType<PaginationResult<SearchProjectsResponse>?>();
+            result.Value.Data.Should().NotBeNull();
             string.IsNullOrWhiteSpace(result.Error).Should().BeTrue();
             await repository.Received(1).SearchAsync(Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<bool>());
         }
@@ -45,7 +47,7 @@ namespace DevFreela.UnitTests.Application.Features.Projects.SearchProjects
         {
             // Arrange
             var repository = Mock.Of<IProjectRepository>(r =>
-                r.SearchAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(new List<Project>()));
+                r.SearchAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(FakeDataHelper.CreateFakeProjectPaginationResult()));
 
             var query = FakeDataHelper.CreateFakeSearchProjectsQuery();
             var handler = new SearchProjectsQueryHandler(repository);
@@ -65,7 +67,8 @@ namespace DevFreela.UnitTests.Application.Features.Projects.SearchProjects
             result.IsSuccess.Should().BeTrue();
             result.IsFailure.Should().BeFalse();
             result.Value.Should().NotBeNull();
-            result.Value.Should().BeOfType<List<SearchProjectsResponse>?>();
+            result.Value.Should().BeOfType<PaginationResult<SearchProjectsResponse>?>();
+            result.Value.Data.Should().NotBeNull();
             Mock.Get(repository).Verify(r => r.SearchAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), CancellationToken.None), Times.Once);
         }
     }
