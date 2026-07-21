@@ -55,10 +55,5 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
         {
             return await context.Projects.AnyAsync(p => p.Id == projectId, cancellationToken);
         }
-
-        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            await context.SaveChangesAsync(cancellationToken);
-        }
     }
 }

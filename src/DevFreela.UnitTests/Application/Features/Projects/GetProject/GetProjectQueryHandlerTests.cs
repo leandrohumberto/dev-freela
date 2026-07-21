@@ -1,6 +1,7 @@
 ﻿using DevFreela.Application.Features.Projects.GetProject;
 using DevFreela.Core.Common;
 using DevFreela.Core.Entities;
+using DevFreela.Core.Interfaces;
 using DevFreela.Core.Repositories;
 using DevFreela.UnitTests.Common.Helpers;
 using FluentAssertions;
@@ -20,9 +21,11 @@ namespace DevFreela.UnitTests.Application.Features.Projects.GetProject
             var repository = Substitute.For<IProjectRepository>();
             repository.ExistsAsync(Arg.Any<Guid>()).Returns(true);
             repository.GetByIdAsync(Arg.Any<Guid>()).Returns(Task.FromResult<Project?>(project));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Projects.Returns(repository);
 
             var query = FakeDataHelper.CreateFakeGetProjectQuery();
-            var handler = new GetProjectQueryHandler(repository);
+            var handler = new GetProjectQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -50,9 +53,11 @@ namespace DevFreela.UnitTests.Application.Features.Projects.GetProject
             // Arrange
             var repository = Substitute.For<IProjectRepository>();
             repository.ExistsAsync(Arg.Any<Guid>()).Returns(false);
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Projects.Returns(repository);
 
             var query = FakeDataHelper.CreateFakeGetProjectQuery();
-            var handler = new GetProjectQueryHandler(repository);
+            var handler = new GetProjectQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -87,9 +92,10 @@ namespace DevFreela.UnitTests.Application.Features.Projects.GetProject
             var repository = Mock.Of<IProjectRepository>(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None) == Task.FromResult(true) &&
                 r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult<Project?>(project));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Projects == repository);
 
             var query = FakeDataHelper.CreateFakeGetProjectQuery();
-            var handler = new GetProjectQueryHandler(repository);
+            var handler = new GetProjectQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -117,9 +123,10 @@ namespace DevFreela.UnitTests.Application.Features.Projects.GetProject
             // Arrange
             var repository = Mock.Of<IProjectRepository>(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None) == Task.FromResult(false));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Projects == repository);
 
             var query = FakeDataHelper.CreateFakeGetProjectQuery();
-            var handler = new GetProjectQueryHandler(repository);
+            var handler = new GetProjectQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);

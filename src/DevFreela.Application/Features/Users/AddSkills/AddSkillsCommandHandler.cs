@@ -1,12 +1,12 @@
 ﻿using DevFreela.Application.Common;
 using DevFreela.Core.Common;
 using DevFreela.Core.Entities;
-using DevFreela.Core.Repositories;
+using DevFreela.Core.Interfaces;
 using MediatR;
 
 namespace DevFreela.Application.Features.Users.AddSkills
 {
-    public class AddSkillsCommandHandler(IUserRepository repository) : IRequestHandler
+    public class AddSkillsCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler
         <AddSkillsCommand, Result>
     {
         public async Task<Result> Handle(AddSkillsCommand request, CancellationToken cancellationToken)
@@ -16,15 +16,15 @@ namespace DevFreela.Application.Features.Users.AddSkills
                 return Result.Failure(ValidationRules.RequiredSkillIdsValidationMessage);
             }
 
-            if (!await repository.ExistsAsync(request.UserId, cancellationToken))
+            if (!await unitOfWork.Users.ExistsAsync(request.UserId, cancellationToken))
             {
                 return Result.Failure(ValidationRules.UserNotFoundValidationMessage);
             }
 
             var userSkills = request.SkillIds.ConvertAll(s => new UserSkill(request.UserId, s));
 
-            await repository.AddSkillsAsync(userSkills, cancellationToken);
-            await repository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.Users.AddSkillsAsync(userSkills, cancellationToken);
+            await unitOfWork.CompleteAsync(cancellationToken);
 
             return Result.Success();
         }

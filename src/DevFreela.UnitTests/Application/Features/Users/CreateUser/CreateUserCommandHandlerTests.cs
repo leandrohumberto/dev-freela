@@ -19,13 +19,15 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             var repository = Substitute.For<IUserRepository>();
             repository.ExistsAsync(Arg.Any<string>()).Returns(Task.FromResult(false));
             repository.AddAsync(Arg.Any<User>()).Returns(Task.CompletedTask);
-            repository.SaveChangesAsync().Returns(Task.CompletedTask);
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
+            unitOfWork.CompleteAsync().Returns(Task.FromResult(1));
 
             var hasher = Substitute.For<IPasswordHasher>();
             hasher.Hash(Arg.Any<string>()).Returns(FakeDataHelper.Faker.Random.Hash());
 
             var command = FakeDataHelper.CreateFakeCreateUserCommand();
-            var handler = new CreateUserCommandHandler(repository, hasher);
+            var handler = new CreateUserCommandHandler(unitOfWork, hasher);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -45,7 +47,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             result.Value.GetType().Should().Be(typeof(CreateUserResponse));
             await repository.Received(1).ExistsAsync(Arg.Any<string>());
             await repository.Received(1).AddAsync(Arg.Any<User>());
-            await repository.Received(1).SaveChangesAsync();
+            await unitOfWork.Received(1).CompleteAsync();
             hasher.Received(1).Hash(Arg.Any<string>());
         }
 
@@ -55,14 +57,16 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             // Arrange
             var repository = Mock.Of<IUserRepository>(r =>
                 r.ExistsAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(false) &&
-                r.AddAsync(It.IsAny<User>(), CancellationToken.None) == Task.CompletedTask &&
-                r.SaveChangesAsync(CancellationToken.None) == Task.CompletedTask);
+                r.AddAsync(It.IsAny<User>(), CancellationToken.None) == Task.CompletedTask);
+            var unitOfWork = Mock.Of<IUnitOfWork>(u =>
+                u.Users == repository &&
+                u.CompleteAsync(CancellationToken.None) == Task.FromResult(1));
 
             var hasher = Mock.Of<IPasswordHasher>(h =>
                 h.Hash(It.IsAny<string>()) == FakeDataHelper.Faker.Random.Hash(40, false));
 
             var command = FakeDataHelper.CreateFakeCreateUserCommand();
-            var handler = new CreateUserCommandHandler(repository, hasher);
+            var handler = new CreateUserCommandHandler(unitOfWork, hasher);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -82,7 +86,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             result.Value.GetType().Should().Be(typeof(CreateUserResponse));
             Mock.Get(repository).Verify(r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None), Times.Once);
             Mock.Get(repository).Verify(r => r.AddAsync(It.IsAny<User>(), CancellationToken.None), Times.Once);
-            Mock.Get(repository).Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
+            Mock.Get(unitOfWork).Verify(u => u.CompleteAsync(CancellationToken.None), Times.Once);
             Mock.Get(hasher).Verify(h => h.Hash(It.IsAny<string>()), Times.Once);
         }
 
@@ -92,11 +96,13 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             // Arrange
             var repository = Substitute.For<IUserRepository>();
             repository.ExistsAsync(Arg.Any<string>()).Returns(Task.FromResult(true));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
 
             var hasher = Substitute.For<IPasswordHasher>();
 
             var command = FakeDataHelper.CreateFakeCreateUserCommand();
-            var handler = new CreateUserCommandHandler(repository, hasher);
+            var handler = new CreateUserCommandHandler(unitOfWork, hasher);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -113,7 +119,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             result.Error.Should().Be(ValidationRules.UserAlreadyExistsValidationMessage);
             await repository.Received(1).ExistsAsync(Arg.Any<string>());
             await repository.DidNotReceive().AddAsync(Arg.Any<User>());
-            await repository.DidNotReceive().SaveChangesAsync();
+            await unitOfWork.DidNotReceive().CompleteAsync();
             hasher.DidNotReceive().Hash(Arg.Any<string>());
         }
 
@@ -122,15 +128,14 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
         {
             // Arrange
             var repository = Mock.Of<IUserRepository>(r =>
-                r.ExistsAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(true) &&
-                r.AddAsync(It.IsAny<User>(), CancellationToken.None) == Task.CompletedTask &&
-                r.SaveChangesAsync(CancellationToken.None) == Task.CompletedTask);
+                r.ExistsAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(true));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Users == repository);
 
             var hasher = Mock.Of<IPasswordHasher>(h =>
                 h.Hash(It.IsAny<string>()) == FakeDataHelper.Faker.Random.Hash(40, false));
 
             var command = FakeDataHelper.CreateFakeCreateUserCommand();
-            var handler = new CreateUserCommandHandler(repository, hasher);
+            var handler = new CreateUserCommandHandler(unitOfWork, hasher);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -147,7 +152,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.CreateUser
             result.Error.Should().Be(ValidationRules.UserAlreadyExistsValidationMessage);
             Mock.Get(repository).Verify(r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None), Times.Once);
             Mock.Get(repository).Verify(r => r.AddAsync(It.IsAny<User>(), CancellationToken.None), Times.Never);
-            Mock.Get(repository).Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Never);
+            Mock.Get(unitOfWork).Verify(u => u.CompleteAsync(CancellationToken.None), Times.Never);
             Mock.Get(hasher).Verify(h => h.Hash(It.IsAny<string>()), Times.Never);
         }
     }

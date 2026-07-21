@@ -10,6 +10,5 @@ namespace DevFreela.Core.Repositories
         Task AddSkillsAsync(List<UserSkill> skills, CancellationToken cancellationToken = default);
         Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<bool> ExistsAsync(string email, bool deleted = false, CancellationToken cancellationToken = default);
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using DevFreela.Application.Features.Projects.SearchProjects;
 using DevFreela.Core.Entities;
 using DevFreela.Core.Models;
+using DevFreela.Core.Interfaces;
 using DevFreela.Core.Repositories;
 using DevFreela.UnitTests.Common.Helpers;
 using FluentAssertions;
@@ -17,9 +18,11 @@ namespace DevFreela.UnitTests.Application.Features.Projects.SearchProjects
             // Arrange
             var repository = Substitute.For<IProjectRepository>();
             repository.SearchAsync(Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<bool>()).Returns(Task.FromResult(FakeDataHelper.CreateFakeProjectPaginationResult()));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Projects.Returns(repository);
 
             var query = FakeDataHelper.CreateFakeSearchProjectsQuery();
-            var handler = new SearchProjectsQueryHandler(repository);
+            var handler = new SearchProjectsQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -48,9 +51,10 @@ namespace DevFreela.UnitTests.Application.Features.Projects.SearchProjects
             // Arrange
             var repository = Mock.Of<IProjectRepository>(r =>
                 r.SearchAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(FakeDataHelper.CreateFakeProjectPaginationResult()));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Projects == repository);
 
             var query = FakeDataHelper.CreateFakeSearchProjectsQuery();
-            var handler = new SearchProjectsQueryHandler(repository);
+            var handler = new SearchProjectsQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);

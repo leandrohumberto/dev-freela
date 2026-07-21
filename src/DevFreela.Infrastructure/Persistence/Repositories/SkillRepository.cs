@@ -25,10 +25,5 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
         {
             return await context.Skills.Where(s => s.Deleted == deleted).ToListAsync(cancellationToken);
         }
-
-        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            await context.SaveChangesAsync(cancellationToken);
-        }
     }
 }

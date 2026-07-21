@@ -20,6 +20,8 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
 
             var repository = Substitute.For<IUserRepository>();
             repository.GetByEmailAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
 
             var hasher = Substitute.For<IPasswordHasher>();
             hasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(true);
@@ -28,7 +30,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
             authentication.GenerateJwtToken(user).Returns(FakeDataHelper.Faker.Random.AlphaNumeric(20));
 
             var command = FakeDataHelper.CreateFakeLoginCommand();
-            var handler = new LoginCommandHandler(repository, hasher, authentication);
+            var handler = new LoginCommandHandler(unitOfWork, hasher, authentication);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -59,6 +61,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
 
             var repository = Mock.Of<IUserRepository>(r =>
                 r.GetByEmailAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(user));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Users == repository);
 
             var hasher = Mock.Of<IPasswordHasher>(h =>
                 h.Verify(It.IsAny<string>(), It.IsAny<string>()));
@@ -67,7 +70,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
                 a.GenerateJwtToken(user) == FakeDataHelper.Faker.Random.AlphaNumeric(20));
 
             var command = FakeDataHelper.CreateFakeLoginCommand();
-            var handler = new LoginCommandHandler(repository, hasher, authentication);
+            var handler = new LoginCommandHandler(unitOfWork, hasher, authentication);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -96,6 +99,8 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
             // Arrange
             var repository = Substitute.For<IUserRepository>();
             repository.GetByEmailAsync(Arg.Any<string>()).Returns(Task.FromResult(user));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
 
             var hasher = Substitute.For<IPasswordHasher>();
             hasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(match);
@@ -104,7 +109,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
             authentication.GenerateJwtToken(user!).Returns(FakeDataHelper.Faker.Random.AlphaNumeric(20));
 
             var command = FakeDataHelper.CreateFakeLoginCommand();
-            var handler = new LoginCommandHandler(repository, hasher, authentication);
+            var handler = new LoginCommandHandler(unitOfWork, hasher, authentication);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -131,6 +136,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
             // Arrange
             var repository = Mock.Of<IUserRepository>(r =>
                 r.GetByEmailAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(user));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Users == repository);
 
             var hasher = Mock.Of<IPasswordHasher>(h =>
                 h.Verify(It.IsAny<string>(), It.IsAny<string>()) == match);
@@ -139,7 +145,7 @@ namespace DevFreela.UnitTests.Application.Features.Users.Login
                 a.GenerateJwtToken(user!) == FakeDataHelper.Faker.Random.AlphaNumeric(20));
 
             var command = FakeDataHelper.CreateFakeLoginCommand();
-            var handler = new LoginCommandHandler(repository, hasher, authentication);
+            var handler = new LoginCommandHandler(unitOfWork, hasher, authentication);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);

@@ -1,26 +1,26 @@
 ﻿using DevFreela.Application.Common;
 using DevFreela.Core.Common;
-using DevFreela.Core.Repositories;
+using DevFreela.Core.Interfaces;
 using MediatR;
 
 namespace DevFreela.Application.Features.Projects.DeleteProject
 {
-    public class DeleteProjectCommandHandler(IProjectRepository repository) : IRequestHandler<DeleteProjectCommand, Result>
+    public class DeleteProjectCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteProjectCommand, Result>
     {
         public async Task<Result> Handle(DeleteProjectCommand request, CancellationToken cancellationToken)
         {
-            var exists = await repository.ExistsAsync(request.ProjectId, cancellationToken);
+            var exists = await unitOfWork.Projects.ExistsAsync(request.ProjectId, cancellationToken);
 
             if (!exists)
             {
                 return Result.Failure(ValidationRules.ProjectNotFoundValidationMessage);
             }
 
-            var project = await repository.GetByIdAsync(request.ProjectId, false, cancellationToken);
+            var project = await unitOfWork.Projects.GetByIdAsync(request.ProjectId, false, cancellationToken);
 
             project!.Delete();
-            repository.Update(project);
-            await repository.SaveChangesAsync(cancellationToken);
+            unitOfWork.Projects.Update(project);
+            await unitOfWork.CompleteAsync(cancellationToken);
 
             return Result.Success();
         }

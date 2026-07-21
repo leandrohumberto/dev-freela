@@ -1,15 +1,15 @@
 ﻿using DevFreela.Application.Common;
 using DevFreela.Core.Common;
-using DevFreela.Core.Repositories;
+using DevFreela.Core.Interfaces;
 using MediatR;
 
 namespace DevFreela.Application.Features.Projects.CommentProject
 {
-    public class CommentProjectCommandHandler(IProjectRepository repository) : IRequestHandler<CommentProjectCommand, Result>
+    public class CommentProjectCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<CommentProjectCommand, Result>
     {
         public async Task<Result> Handle(CommentProjectCommand request, CancellationToken cancellationToken)
         {
-            var exists = await repository.ExistsAsync(request.ProjectId, cancellationToken);
+            var exists = await unitOfWork.Projects.ExistsAsync(request.ProjectId, cancellationToken);
 
             if (!exists)
             {
@@ -18,8 +18,8 @@ namespace DevFreela.Application.Features.Projects.CommentProject
 
             var comment = request.ToEntity();
 
-            await repository.AddCommentAsync(comment, cancellationToken);
-            await repository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.Projects.AddCommentAsync(comment, cancellationToken);
+            await unitOfWork.CompleteAsync(cancellationToken);
 
             return Result.Success();
         }

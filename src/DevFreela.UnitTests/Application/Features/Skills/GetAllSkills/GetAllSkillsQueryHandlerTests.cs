@@ -1,5 +1,6 @@
 ﻿using DevFreela.Application.Features.Skills.GetAllSkills;
 using DevFreela.Core.Entities;
+using DevFreela.Core.Interfaces;
 using DevFreela.Core.Repositories;
 using DevFreela.UnitTests.Common.Helpers;
 using FluentAssertions;
@@ -16,9 +17,11 @@ namespace DevFreela.UnitTests.Application.Features.Skills.GetAllSkills
             // Arrange
             var repository = Substitute.For<ISkillRepository>();
             repository.GetAllAsync().Returns(Task.FromResult<List<Skill>>([]));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Skills.Returns(repository);
 
             var query = FakeDataHelper.CreateFakeGetAllSkillsQuery();
-            var handler = new GetAllSkillsQueryHandler(repository);
+            var handler = new GetAllSkillsQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -44,9 +47,10 @@ namespace DevFreela.UnitTests.Application.Features.Skills.GetAllSkills
             // Arrange
             var repository = Mock.Of<ISkillRepository>(r =>
                 r.GetAllAsync(It.IsAny<bool>(), CancellationToken.None) == Task.FromResult(new List<Skill>()));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Skills == repository);
 
             var query = FakeDataHelper.CreateFakeGetAllSkillsQuery();
-            var handler = new GetAllSkillsQueryHandler(repository);
+            var handler = new GetAllSkillsQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);

@@ -1,16 +1,15 @@
 ﻿using DevFreela.Application.Common;
 using DevFreela.Core.Common;
 using DevFreela.Core.Interfaces;
-using DevFreela.Core.Repositories;
 using MediatR;
 
 namespace DevFreela.Application.Features.Users.ResetPassword
 {
-    public class ResetPasswordCommandHandler(IUserRepository repository, IPasswordResetService resetService, IPasswordHasher hasher) : IRequestHandler<ResetPasswordCommand, Result>
+    public class ResetPasswordCommandHandler(IUnitOfWork unitOfWork, IPasswordResetService resetService, IPasswordHasher hasher) : IRequestHandler<ResetPasswordCommand, Result>
     {
         public async Task<Result> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
-            var user = await repository.GetByEmailAsync(request.Email, false, cancellationToken);
+            var user = await unitOfWork.Users.GetByEmailAsync(request.Email, false, cancellationToken);
 
             if (user == null)
             {
@@ -25,7 +24,7 @@ namespace DevFreela.Application.Features.Users.ResetPassword
             var newPasswordHash = hasher.Hash(request.NewPassword);
             user.UpdatePasswordHash(newPasswordHash);
 
-            await repository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CompleteAsync(cancellationToken);
 
             return Result.Success();
         }

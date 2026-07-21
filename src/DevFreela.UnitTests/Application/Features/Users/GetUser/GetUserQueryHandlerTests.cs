@@ -1,6 +1,7 @@
 ﻿using DevFreela.Application.Features.Users.GetUser;
 using DevFreela.Core.Common;
 using DevFreela.Core.Entities;
+using DevFreela.Core.Interfaces;
 using DevFreela.Core.Repositories;
 using DevFreela.UnitTests.Common.Helpers;
 using FluentAssertions;
@@ -19,9 +20,11 @@ namespace DevFreela.UnitTests.Application.Features.Users.GetUser
             var repository = Substitute.For<IUserRepository>();
             repository.ExistsAsync(Arg.Any<Guid>()).Returns(Task.FromResult(true));
             repository.GetByIdAsync(Arg.Any<Guid>()).Returns(Task.FromResult<User?>(user));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
 
             var query = FakeDataHelper.CreateFakeGetUserQuery();
-            var handler = new GetUserQueryHandler(repository);
+            var handler = new GetUserQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -48,9 +51,11 @@ namespace DevFreela.UnitTests.Application.Features.Users.GetUser
             // Arrange
             var repository = Substitute.For<IUserRepository>();
             repository.ExistsAsync(Arg.Any<Guid>()).Returns(Task.FromResult(false));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
 
             var query = FakeDataHelper.CreateFakeGetUserQuery();
-            var handler = new GetUserQueryHandler(repository);
+            var handler = new GetUserQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -78,9 +83,10 @@ namespace DevFreela.UnitTests.Application.Features.Users.GetUser
             var repository = Mock.Of<IUserRepository>(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None) == Task.FromResult(true) &&
                 r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult<User?>(user));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Users == repository);
 
             var query = FakeDataHelper.CreateFakeGetUserQuery();
-            var handler = new GetUserQueryHandler(repository);
+            var handler = new GetUserQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -107,9 +113,10 @@ namespace DevFreela.UnitTests.Application.Features.Users.GetUser
             // Arrange
             var repository = Mock.Of<IUserRepository>(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None) == Task.FromResult(false));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Users == repository);
 
             var query = FakeDataHelper.CreateFakeGetUserQuery();
-            var handler = new GetUserQueryHandler(repository);
+            var handler = new GetUserQueryHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);

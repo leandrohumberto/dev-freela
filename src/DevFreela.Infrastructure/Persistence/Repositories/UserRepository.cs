@@ -43,10 +43,5 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
                  .SingleOrDefaultAsync(
                     p => p.Email == email && p.Deleted == deleted, cancellationToken);
         }
-
-        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            await context.SaveChangesAsync(cancellationToken);
-        }
     }
 }

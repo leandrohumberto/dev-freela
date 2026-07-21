@@ -2,6 +2,7 @@
 using DevFreela.Core.Common;
 using DevFreela.Core.Entities;
 using DevFreela.Core.Enums;
+using DevFreela.Core.Interfaces;
 using DevFreela.Core.Repositories;
 using DevFreela.UnitTests.Common.Helpers;
 using FluentAssertions;
@@ -21,10 +22,12 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
             var repository = Substitute.For<IProjectRepository>();
             repository.ExistsAsync(Arg.Any<Guid>()).Returns(Task.FromResult(true));
             repository.GetByIdAsync(Arg.Any<Guid>()).Returns(Task.FromResult<Project?>(project));
-            repository.SaveChangesAsync().Returns(Task.CompletedTask);
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Projects.Returns(repository);
+            unitOfWork.CompleteAsync().Returns(Task.FromResult(1));
 
             var command = FakeDataHelper.CreateFakeStartProjectCommand();
-            var handler = new StartProjectCommandHandler(repository);
+            var handler = new StartProjectCommandHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -44,7 +47,7 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
             project.StartedAt.Should().NotBeNull();
             await repository.Received(1).ExistsAsync(Arg.Any<Guid>());
             await repository.Received(1).GetByIdAsync(Arg.Any<Guid>());
-            await repository.Received(1).SaveChangesAsync();
+            await unitOfWork.Received(1).CompleteAsync();
         }
 
         [Fact]
@@ -54,9 +57,11 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
 
             var repository = Substitute.For<IProjectRepository>();
             repository.ExistsAsync(Arg.Any<Guid>()).Returns(Task.FromResult(false));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Projects.Returns(repository);
 
             var command = FakeDataHelper.CreateFakeStartProjectCommand();
-            var handler = new StartProjectCommandHandler(repository);
+            var handler = new StartProjectCommandHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -73,7 +78,7 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
             result.Error.Should().Be(ValidationRules.ProjectNotFoundValidationMessage);
             await repository.Received(1).ExistsAsync(Arg.Any<Guid>());
             await repository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
-            await repository.DidNotReceive().SaveChangesAsync();
+            await unitOfWork.DidNotReceive().CompleteAsync();
         }
 
         [Fact]
@@ -84,11 +89,13 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
 
             var repository = Mock.Of<IProjectRepository>(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None) == Task.FromResult(true) &&
-                r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult<Project?>(project) &&
-                r.SaveChangesAsync(CancellationToken.None) == Task.CompletedTask);
+                r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult<Project?>(project));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u =>
+                u.Projects == repository &&
+                u.CompleteAsync(CancellationToken.None) == Task.FromResult(1));
 
             var command = FakeDataHelper.CreateFakeStartProjectCommand();
-            var handler = new StartProjectCommandHandler(repository);
+            var handler = new StartProjectCommandHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -109,7 +116,7 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
             Mock.Get(repository).Verify(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Once);
             Mock.Get(repository).Verify(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<bool>(), CancellationToken.None), Times.Once);
-            Mock.Get(repository).Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
+            Mock.Get(unitOfWork).Verify(u => u.CompleteAsync(CancellationToken.None), Times.Once);
         }
 
         [Fact]
@@ -118,9 +125,10 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
             // Arrange
             var repository = Mock.Of<IProjectRepository>(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None) == Task.FromResult(false));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Projects == repository);
 
             var command = FakeDataHelper.CreateFakeStartProjectCommand();
-            var handler = new StartProjectCommandHandler(repository);
+            var handler = new StartProjectCommandHandler(unitOfWork);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -138,7 +146,7 @@ namespace DevFreela.UnitTests.Application.Features.Projects.StartProject
             Mock.Get(repository).Verify(r =>
                 r.ExistsAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Once);
             Mock.Get(repository).Verify(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<bool>(), CancellationToken.None), Times.Never);
-            Mock.Get(repository).Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Never);
+            Mock.Get(unitOfWork).Verify(u => u.CompleteAsync(CancellationToken.None), Times.Never);
         }
     }
 }

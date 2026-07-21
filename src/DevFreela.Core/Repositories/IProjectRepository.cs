@@ -11,6 +11,5 @@ namespace DevFreela.Core.Repositories
         Task<bool> ExistsAsync(Guid projectId, CancellationToken cancellationToken = default);
         void Update(Project project);
         Task AddCommentAsync(ProjectComment comment, CancellationToken cancellationToken = default);
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

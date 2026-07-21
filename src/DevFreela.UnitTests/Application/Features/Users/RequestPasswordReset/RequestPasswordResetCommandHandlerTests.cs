@@ -25,11 +25,13 @@ namespace DevFreela.UnitTests.Application.Features.Users.RequestPasswordReset
             var user = FakeDataHelper.CreateFakeUser();
             var repository = Substitute.For<IUserRepository>();
             repository.GetByEmailAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
             var resetService = Substitute.For<IPasswordResetService>();
             resetService.SendPasswordResetCodeAsync(Arg.Any<string>()).Returns(Task.CompletedTask);
 
             var command = FakeDataHelper.CreateFakeRequestPasswordResetCommand();
-            var handler = new RequestPasswordResetCommandHandler(repository, resetService);
+            var handler = new RequestPasswordResetCommandHandler(unitOfWork, resetService);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -55,10 +57,12 @@ namespace DevFreela.UnitTests.Application.Features.Users.RequestPasswordReset
             // Arrange
             var repository = Substitute.For<IUserRepository>();
             repository.GetByEmailAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null!));
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            unitOfWork.Users.Returns(repository);
             var resetService = Substitute.For<IPasswordResetService>();
 
             var command = FakeDataHelper.CreateFakeRequestPasswordResetCommand();
-            var handler = new RequestPasswordResetCommandHandler(repository, resetService);
+            var handler = new RequestPasswordResetCommandHandler(unitOfWork, resetService);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -85,11 +89,12 @@ namespace DevFreela.UnitTests.Application.Features.Users.RequestPasswordReset
             var user = FakeDataHelper.CreateFakeUser();
             var repository = Mock.Of<IUserRepository>(r =>
                 r.GetByEmailAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult<User?>(user));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Users == repository);
             var resetService = Mock.Of<IPasswordResetService>(r =>
                 r.SendPasswordResetCodeAsync(It.IsAny<string>(), CancellationToken.None) == Task.CompletedTask);
 
             var command = FakeDataHelper.CreateFakeRequestPasswordResetCommand();
-            var handler = new RequestPasswordResetCommandHandler(repository, resetService);
+            var handler = new RequestPasswordResetCommandHandler(unitOfWork, resetService);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -115,11 +120,12 @@ namespace DevFreela.UnitTests.Application.Features.Users.RequestPasswordReset
             // Arrange
             var repository = Mock.Of<IUserRepository>(r =>
                 r.GetByEmailAsync(It.IsAny<string>(), It.IsAny<bool>(), CancellationToken.None) == Task.FromResult<User?>(null!));
+            var unitOfWork = Mock.Of<IUnitOfWork>(u => u.Users == repository);
             var resetService = Mock.Of<IPasswordResetService>(r =>
                 r.SendPasswordResetCodeAsync(It.IsAny<string>(), CancellationToken.None) == Task.CompletedTask);
 
             var command = FakeDataHelper.CreateFakeRequestPasswordResetCommand();
-            var handler = new RequestPasswordResetCommandHandler(repository, resetService);
+            var handler = new RequestPasswordResetCommandHandler(unitOfWork, resetService);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
