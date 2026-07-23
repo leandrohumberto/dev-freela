@@ -23,7 +23,14 @@ Run from `DevFreela/src/` unless noted:
 - **Clean Architecture**: Core → Application → Infrastructure → API (dependencies inward)
 - **CQRS via MediatR**: each feature is a folder under `Application/Features/{Entity}/{Action}/` with a command/query record, handler, and optional validator + pipeline behavior
 - **Result pattern**: handlers return `Result<T>` or `Result` (in `Application/Common/Result.cs`) with `IsSuccess`/`IsFailure`/`Error`; controllers check `result.IsFailure` and return appropriate status codes
-- **Unit of Work + Repository pattern**: `IUnitOfWork` in `Core.Interfaces` exposes `Projects`, `Skills`, `Users` repository properties and `CompleteAsync()`; handlers inject `IUnitOfWork` instead of individual repositories. Repository interfaces (`I{Entity}Repository` in Core) no longer expose `SaveChangesAsync`. `UnitOfWork` implementation in Infrastructure composes `DbContext` and registered repositories.
+- **Unit of Work + Repository pattern**: `IUnitOfWork` in `Core.Interfaces` exposes `Projects`, `Skills`, `Users` repository properties and `CompleteAsync()`; handlers inject `IUnitOfWork` instead of individual repositories. Repository interfaces (`I{Entity}Repository` in Core) no longer expose `SaveChangesAsync`. `UnitOfWork` implementation in Infrastructure composes `DbContext` and registered repositories. For multi-step operations requiring atomicity, call `BeginTransactionAsync()` which returns an `ITransaction`:
+  ```csharp
+  await using var tx = await _unitOfWork.BeginTransactionAsync(ct);
+  // ... work ...
+  await _unitOfWork.CompleteAsync(ct);
+  await tx.CommitAsync(ct);
+  // rollback happens automatically if CommitAsync was never called
+  ```
 - **Controllers**: primary constructor with `IMediator`, thin methods that `mediator.Send(command)`
 - **Validators**: FluentValidation `AbstractValidator<T>` auto-registered via `AddValidatorsFromAssembly`
 - **Pipeline behaviors** (registered in order): `LoggingBehavior` → `ValidationBehavior` → feature-specific behaviors (`ValidateCreateProjectCommandBehavior`, `ValidateAddSkillsCommandBehavior`)
